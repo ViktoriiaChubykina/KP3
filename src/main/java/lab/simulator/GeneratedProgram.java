@@ -4,6 +4,7 @@ import java.util.Scanner;
 public final class GeneratedProgram {
 
     private static final Scanner IN = new Scanner(System.in);
+    private static final Object PRINT_LOCK = new Object();
 
     private static volatile int w;
     private static volatile int x;
@@ -40,7 +41,9 @@ public final class GeneratedProgram {
                         }
                     }
                     case "b6" -> {
-                        System.out.println(x);
+                        synchronized (PRINT_LOCK) {
+                            System.out.println(x);
+                        }
                         cur = "b9";
                     }
                     case "b7" -> {
@@ -48,7 +51,9 @@ public final class GeneratedProgram {
                         cur = "b8";
                     }
                     case "b8" -> {
-                        System.out.println(x);
+                        synchronized (PRINT_LOCK) {
+                            System.out.println(x);
+                        }
                         cur = "b9";
                     }
                     case "b9" -> {
