@@ -17,7 +17,11 @@ public final class JavaCodeGenerator {
         sb.append("// Автоматично згенеровано середовищем блок-схем\n");
         sb.append("import java.util.Scanner;\n\n");
         sb.append("public final class GeneratedProgram {\n\n");
-        sb.append("    private static final Scanner IN = new Scanner(System.in);\n\n");
+        sb.append("    private static final Scanner IN = new Scanner(System.in);\n");
+        if (hasPrintBlock(program)) {
+            sb.append("    private static final Object PRINT_LOCK = new Object();\n");
+        }
+        sb.append("\n");
         for (String v : vars) {
             sb.append("    private static volatile int ").append(safe(v)).append(";\n");
         }
@@ -116,8 +120,12 @@ public final class JavaCodeGenerator {
             }
             case INPUT ->
                     "                        " + safe(stripWs(b.getCommandText())) + " = IN.nextInt();\n";
-            case PRINT ->
-                    "                        System.out.println(" + safe(stripWs(b.getCommandText())) + ");\n";
+            case PRINT -> {
+                String v = safe(stripWs(b.getCommandText()));
+                yield "                        synchronized (PRINT_LOCK) {\n"
+                        + "                            System.out.println(" + v + ");\n"
+                        + "                        }\n";
+            }
             default -> "";
         };
     }
@@ -147,6 +155,17 @@ public final class JavaCodeGenerator {
             return "";
         }
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private static boolean hasPrintBlock(ProgramModel program) {
+        for (Flowchart fc : program.getThreads()) {
+            for (Block b : fc.getBlocks()) {
+                if (b.getType() == BlockType.PRINT) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static String safe(String name) {
